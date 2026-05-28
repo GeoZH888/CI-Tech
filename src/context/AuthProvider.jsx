@@ -63,12 +63,22 @@ export function AuthProvider({ children }) {
   }, [])
 
   // Sign in, then resolve the profile so the caller can role-check immediately.
+  // A 12s ceiling protects the UI: a healthy Supabase Auth round-trip takes
+  // ~300ms, so anything past that is a network problem, a blocked extension,
+  // or a corrupted local-storage session — we surface a timeout error
+  // instead of letting the submit button spin forever.
   const signIn = useCallback(async (email, password) => {
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password })
-    if (error) throw error
-    const p = await fetchProfile(data.user.id)
-    setProfile(p)
-    return { session: data.session, profile: p }
+    const timeout = new Promise((_, reject) =>
+      setTimeout(() => reject(new Error('signin_timeout')), 12000)
+    )
+    const op = (async () => {
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password })
+      if (error) throw error
+      const p = await fetchProfile(data.user.id)
+      setProfile(p)
+      return { session: data.session, profile: p }
+    })()
+    return Promise.race([op, timeout])
   }, [])
 
   const signOut = useCallback(async () => {

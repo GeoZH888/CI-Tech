@@ -21,9 +21,14 @@ export default function Login() {
     return <Navigate to="/admin" replace />
   }
 
+  // We keep the raw error message in state so the user can see the real cause
+  // if it's not one of the known ones (denied / failed / timeout).
+  const [rawError, setRawError] = useState('')
+
   async function handleSubmit(e) {
     e.preventDefault()
     setError('')
+    setRawError('')
     setBusy(true)
     try {
       const { profile } = await signIn(email.trim(), password)
@@ -35,7 +40,14 @@ export default function Login() {
       }
       navigate(location.state?.from || '/admin', { replace: true })
     } catch (err) {
-      setError(err?.message === 'denied' ? 'denied' : 'failed')
+      const msg = err?.message || String(err)
+      if (msg === 'signin_timeout') setError('timeout')
+      else if (msg === 'denied') setError('denied')
+      else if (/invalid login credentials/i.test(msg)) setError('failed')
+      else {
+        setError('other')
+        setRawError(msg)
+      }
     } finally {
       setBusy(false)
     }
@@ -74,6 +86,13 @@ export default function Login() {
 
         {error === 'denied' && <p className="auth-error">{t('auth.denied')}</p>}
         {error === 'failed' && <p className="auth-error">{t('auth.failed')}</p>}
+        {error === 'timeout' && <p className="auth-error">{t('auth.timeout')}</p>}
+        {error === 'other' && (
+          <p className="auth-error">
+            {t('auth.failed')}
+            {rawError && <><br /><code style={{ fontSize: '0.78rem', opacity: 0.8 }}>{rawError}</code></>}
+          </p>
+        )}
 
         <button className="btn" type="submit" disabled={busy}>
           {busy ? t('auth.signingIn') : t('auth.signIn')}

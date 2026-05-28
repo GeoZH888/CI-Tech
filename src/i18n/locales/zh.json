@@ -52,6 +52,7 @@
     "signingIn": "登录中…",
     "denied": "访问被拒绝 —— 该账号不是超级管理员。",
     "failed": "登录失败，请检查邮箱和密码。",
+    "timeout": "登录响应超时。请尝试清除本站数据（DevTools → Application → Storage → Clear site data）后重试；若仍卡住，可能是浏览器扩展拦截了 *.supabase.co。",
     "notConfigured": "尚未配置 Supabase，请在 .env 中填写相关值。"
   },
   "admin": {

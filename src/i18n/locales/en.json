@@ -52,6 +52,7 @@
     "signingIn": "Signing in…",
     "denied": "Access denied — this account is not a super admin.",
     "failed": "Sign-in failed. Check your email and password.",
+    "timeout": "Sign-in took too long. Try clearing this site's storage (DevTools → Application → Storage → Clear site data), then try again. If it still hangs, a browser extension may be blocking *.supabase.co.",
     "notConfigured": "Supabase isn't configured yet. Set your .env values."
   },
   "admin": {

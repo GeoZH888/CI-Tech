@@ -52,6 +52,7 @@
     "signingIn": "Accesso in corso…",
     "denied": "Accesso negato — questo account non è un super admin.",
     "failed": "Accesso non riuscito. Controlla email e password.",
+    "timeout": "L'accesso ha impiegato troppo tempo. Prova a cancellare i dati del sito (DevTools → Application → Storage → Clear site data) e riprova. Se non funziona, un'estensione del browser potrebbe bloccare *.supabase.co.",
     "notConfigured": "Supabase non è ancora configurato. Imposta i valori nel file .env."
   },
   "admin": {
