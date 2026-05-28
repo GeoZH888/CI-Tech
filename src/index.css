@@ -111,6 +111,61 @@ img {
   margin: 0 0 1.25rem;
 }
 
+/* ---------- hero (home) ---------- */
+.hero {
+  background:
+    radial-gradient(circle at 80% 20%, rgba(103, 232, 249, 0.25), transparent 55%),
+    radial-gradient(circle at 15% 80%, rgba(14, 116, 144, 0.18), transparent 55%),
+    linear-gradient(180deg, var(--mist-deep), var(--mist));
+  border-bottom: 1px solid var(--surface-border);
+}
+.hero-inner {
+  max-width: 1040px;
+  margin: 0 auto;
+  padding: 2.5rem 1.2rem 2.2rem;
+}
+.hero-title {
+  font-size: clamp(1.9rem, 4vw, 2.6rem);
+  margin: 0 0 0.4rem;
+  letter-spacing: -0.01em;
+}
+.hero-subtitle {
+  color: var(--text-soft);
+  font-size: 1.02rem;
+  margin: 0 0 1.2rem;
+  max-width: 56ch;
+}
+.hero-stats {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  color: var(--text-soft);
+  font-size: 0.92rem;
+}
+.hero-stats .stat strong {
+  color: var(--accent-dark);
+  font-size: 1.1rem;
+  margin-right: 0.2rem;
+}
+.hero-stats .stat-dot {
+  opacity: 0.5;
+}
+
+/* ---------- footer ---------- */
+.site-footer {
+  margin-top: auto;
+  padding: 1.2rem 1.2rem;
+  border-top: 1px solid var(--surface-border);
+  background: var(--surface);
+  color: var(--text-soft);
+  font-size: 0.85rem;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.8rem;
+}
+
 /* ---------- header ---------- */
 .site-header {
   position: sticky;
@@ -228,12 +283,51 @@ img {
   text-decoration: none;
 }
 
+/* Tinted banner at the top of each card; logo medallion sits centered on it. */
+.project-card-banner {
+  position: relative;
+  height: 120px;
+  display: grid;
+  place-items: center;
+  background: linear-gradient(135deg, var(--mist-deep), #fff);
+  border-bottom: 1px solid var(--surface-border);
+  overflow: hidden;
+}
+.project-card-banner::after {
+  /* subtle diagonal sheen so the banner doesn't read as flat */
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(120deg, transparent 55%, rgba(255, 255, 255, 0.35) 75%, transparent 95%);
+  pointer-events: none;
+}
+.project-card-banner .cat-tag {
+  position: absolute;
+  top: 0.6rem;
+  right: 0.6rem;
+  z-index: 1;
+}
+.project-card-banner .project-logo {
+  width: 72px;
+  height: 72px;
+  background: #fff;
+  box-shadow: var(--shadow);
+  z-index: 1;
+}
+
+/* category-tinted banners — soft pastel matching each cat-tag */
+.banner-education { background: linear-gradient(135deg, #dcfce7, #f0fdf4); }
+.banner-cultural  { background: linear-gradient(135deg, #fae8ff, #fdf4ff); }
+.banner-community { background: linear-gradient(135deg, #ffedd5, #fff7ed); }
+.banner-tools     { background: linear-gradient(135deg, #dbeafe, #eff6ff); }
+.banner-other     { background: linear-gradient(135deg, var(--mist-deep), #fff); }
+
 .project-card-body {
-  padding: 1.1rem 1.1rem 0.6rem;
+  padding: 0.95rem 1.1rem 0.6rem;
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 0.45rem;
+  gap: 0.4rem;
 }
 
 .project-logo {

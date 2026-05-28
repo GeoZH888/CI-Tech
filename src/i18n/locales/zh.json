@@ -9,7 +9,11 @@
   },
   "home": {
     "title": "项目展示",
-    "subtitle": "浏览在教育、文化、社区与工具领域构建的应用与平台。"
+    "subtitle": "浏览在教育、文化、社区与工具领域构建的应用与平台。",
+    "projectsCount_one": "个项目",
+    "projectsCount_other": "个项目",
+    "categoriesCount_one": "个分类",
+    "categoriesCount_other": "个分类"
   },
   "categories": {
     "all": "全部",

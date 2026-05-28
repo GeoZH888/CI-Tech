@@ -59,6 +59,30 @@ In the Supabase **SQL editor**, run in order:
 (The login page and admin panel arrive in batch 2; the SQL/role plumbing is
 already in place so this step works now.)
 
+## 3a. One-time data bootstrap (logos + extra projects)
+
+`scripts/bootstrap-data.mjs` is a small node script that uploads the three
+real logo files in `icons and images/` to the `project-logos` bucket and
+adds the **Ciao News**, **LINGUA — Learn Italian**, and **Patente** projects
+(plus attaches a logo to the existing **Feiyi** row). It needs your Supabase
+**service-role** key — find it in Supabase Dashboard → Project Settings →
+API → "service_role" (reveal). **Treat that key as a secret; never commit it.**
+
+```powershell
+# PowerShell
+$env:SUPABASE_SERVICE_ROLE_KEY="<paste-service-role-key>"
+node scripts/bootstrap-data.mjs
+```
+
+```bash
+# Bash
+SUPABASE_SERVICE_ROLE_KEY="<paste-service-role-key>" node scripts/bootstrap-data.mjs
+```
+
+The script is **idempotent** — it skips uploads/inserts that already exist,
+so re-running it is harmless. After it finishes, refresh the live site;
+the three new cards should appear with logos.
+
 ## 4. Deploy (Netlify)
 
 ```powershell

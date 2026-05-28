@@ -9,7 +9,11 @@
   },
   "home": {
     "title": "Vetrina dei progetti",
-    "subtitle": "Esplora le app e le piattaforme realizzate per istruzione, cultura, comunità e strumenti."
+    "subtitle": "Esplora le app e le piattaforme realizzate per istruzione, cultura, comunità e strumenti.",
+    "projectsCount_one": "progetto",
+    "projectsCount_other": "progetti",
+    "categoriesCount_one": "categoria",
+    "categoriesCount_other": "categorie"
   },
   "categories": {
     "all": "Tutti",

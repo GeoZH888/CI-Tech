@@ -9,7 +9,11 @@
   },
   "home": {
     "title": "Project Showcase",
-    "subtitle": "Explore the apps and platforms built across education, culture, community and tools."
+    "subtitle": "Explore the apps and platforms built across education, culture, community and tools.",
+    "projectsCount_one": "project",
+    "projectsCount_other": "projects",
+    "categoriesCount_one": "category",
+    "categoriesCount_other": "categories"
   },
   "categories": {
     "all": "All",
