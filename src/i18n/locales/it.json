@@ -66,6 +66,10 @@
     "cancel": "Annulla",
     "published": "Pubblicato",
     "hidden": "Nascosto",
+    "filter": { "all": "Tutti" },
+    "reorderInAllOnly": "(il riordino funziona solo in \"Tutti\")",
+    "noHidden": "Nessun progetto nascosto.",
+    "noPublished": "Nessun progetto pubblicato.",
     "deleteTitle": "Eliminare il progetto?",
     "deleteConfirm": "Eliminare \"{{name}}\"? L'operazione è irreversibile.",
     "form": {

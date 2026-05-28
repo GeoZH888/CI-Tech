@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import {
@@ -40,7 +40,11 @@ function ProjectRow({ project, onTogglePublish, onDelete, busyId }) {
   const busy = busyId === project.id
 
   return (
-    <div ref={setNodeRef} style={style} className="admin-row">
+    <div
+      ref={setNodeRef}
+      style={style}
+      className={`admin-row${project.is_published ? '' : ' is-hidden'}`}
+    >
       <button
         className="drag-handle"
         aria-label="Drag to reorder"
@@ -94,6 +98,21 @@ export default function AdminDashboard() {
   const [busyId, setBusyId] = useState(null)
   const [toDelete, setToDelete] = useState(null) // project pending confirm
   const [actionError, setActionError] = useState('')
+  // 'all' (default) | 'published' | 'hidden' — drives the filter chips below.
+  const [statusFilter, setStatusFilter] = useState('all')
+
+  const counts = useMemo(() => {
+    if (!projects) return { all: 0, published: 0, hidden: 0 }
+    const published = projects.filter((p) => p.is_published).length
+    return { all: projects.length, published, hidden: projects.length - published }
+  }, [projects])
+
+  const visible = useMemo(() => {
+    if (!projects) return []
+    if (statusFilter === 'published') return projects.filter((p) => p.is_published)
+    if (statusFilter === 'hidden') return projects.filter((p) => !p.is_published)
+    return projects
+  }, [projects, statusFilter])
 
   // Seed local list once the fetch lands.
   if (data && projects === null) setProjects(data)
@@ -172,10 +191,52 @@ export default function AdminDashboard() {
       )}
 
       {projects && projects.length > 0 && (
-        <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-          <SortableContext items={projects.map((p) => p.id)} strategy={verticalListSortingStrategy}>
+        <>
+          {/* status filter — quick way to see which projects are live vs hidden */}
+          <div className="filter-bar" role="group" aria-label="Filter by status">
+            {[
+              { key: 'all', label: t('admin.filter.all') },
+              { key: 'published', label: t('admin.published') },
+              { key: 'hidden', label: t('admin.hidden') }
+            ].map(({ key, label }) => (
+              <button
+                key={key}
+                type="button"
+                className={`chip${statusFilter === key ? ' active' : ''}`}
+                aria-pressed={statusFilter === key}
+                onClick={() => setStatusFilter(key)}
+              >
+                {label} <span className="chip-count">{counts[key]}</span>
+              </button>
+            ))}
+            {statusFilter !== 'all' && (
+              <span className="muted" style={{ fontSize: '0.82rem', marginLeft: '0.4rem' }}>
+                {t('admin.reorderInAllOnly')}
+              </span>
+            )}
+          </div>
+
+          {/* Reorder only makes sense when showing the full list — dragging a
+              filtered subset would mangle the positions of hidden rows. */}
+          {statusFilter === 'all' ? (
+            <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+              <SortableContext items={visible.map((p) => p.id)} strategy={verticalListSortingStrategy}>
+                <div className="admin-list">
+                  {visible.map((p) => (
+                    <ProjectRow
+                      key={p.id}
+                      project={p}
+                      busyId={busyId}
+                      onTogglePublish={handleTogglePublish}
+                      onDelete={setToDelete}
+                    />
+                  ))}
+                </div>
+              </SortableContext>
+            </DndContext>
+          ) : (
             <div className="admin-list">
-              {projects.map((p) => (
+              {visible.map((p) => (
                 <ProjectRow
                   key={p.id}
                   project={p}
@@ -185,8 +246,14 @@ export default function AdminDashboard() {
                 />
               ))}
             </div>
-          </SortableContext>
-        </DndContext>
+          )}
+
+          {visible.length === 0 && (
+            <p className="muted center" style={{ padding: '1.5rem' }}>
+              {statusFilter === 'hidden' ? t('admin.noHidden') : t('admin.noPublished')}
+            </p>
+          )}
+        </>
       )}
 
       {/* delete confirmation modal */}

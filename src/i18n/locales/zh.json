@@ -66,6 +66,10 @@
     "cancel": "取消",
     "published": "已发布",
     "hidden": "已隐藏",
+    "filter": { "all": "全部" },
+    "reorderInAllOnly": "（仅在「全部」中可拖动排序）",
+    "noHidden": "暂无隐藏项目。",
+    "noPublished": "暂无已发布项目。",
     "deleteTitle": "删除项目？",
     "deleteConfirm": "确定删除「{{name}}」吗？此操作不可撤销。",
     "form": {

@@ -66,6 +66,10 @@
     "cancel": "Cancel",
     "published": "Published",
     "hidden": "Hidden",
+    "filter": { "all": "All" },
+    "reorderInAllOnly": "(reorder only works in \"All\")",
+    "noHidden": "No hidden projects.",
+    "noPublished": "No published projects.",
     "deleteTitle": "Delete project?",
     "deleteConfirm": "Delete \"{{name}}\"? This can't be undone.",
     "form": {
