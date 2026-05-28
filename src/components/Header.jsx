@@ -5,7 +5,12 @@ export default function Header() {
   return (
     <header className="site-header">
       <Link to="/" className="brand">
-        <span className="brand-mark" aria-hidden="true">⚡</span>
+        <img
+          src="/ci-tech-logo.png"
+          alt=""
+          aria-hidden="true"
+          className="brand-logo"
+        />
         <span>CI-Tech</span>
       </Link>
       <LanguageSwitcher />

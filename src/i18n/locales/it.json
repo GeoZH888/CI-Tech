@@ -13,7 +13,8 @@
     "projectsCount_one": "progetto",
     "projectsCount_other": "progetti",
     "categoriesCount_one": "categoria",
-    "categoriesCount_other": "categorie"
+    "categoriesCount_other": "categorie",
+    "hiddenCount": "nascosti"
   },
   "categories": {
     "all": "Tutti",
@@ -95,6 +96,16 @@
     "noFile": "Nessun file selezionato.",
     "badType": "Tipo di file non supportato. Usa PNG, JPG, SVG o WebP.",
     "tooBig": "File troppo grande (max 2 MB)."
+  },
+  "chat": {
+    "heading": "Chiedi all'assistente",
+    "intro": "Assistente AI",
+    "greeting": "Ciao! Sono {{name}}. Chiedimi qualsiasi cosa su questo progetto.",
+    "placeholder": "Fai una domanda sul progetto…",
+    "send": "Invia",
+    "sending": "Invio…",
+    "error": "Chat non riuscita. Riprova.",
+    "notConfigured": "L'assistente non è ancora configurato — imposta ANTHROPIC_API_KEY su Netlify e ridistribuisci."
   },
   "mascot": {
     "name": "Claudio",

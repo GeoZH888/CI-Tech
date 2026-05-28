@@ -13,7 +13,8 @@
     "projectsCount_one": "个项目",
     "projectsCount_other": "个项目",
     "categoriesCount_one": "个分类",
-    "categoriesCount_other": "个分类"
+    "categoriesCount_other": "个分类",
+    "hiddenCount": "个已隐藏"
   },
   "categories": {
     "all": "全部",
@@ -95,6 +96,16 @@
     "noFile": "未选择文件。",
     "badType": "不支持的文件类型，请使用 PNG、JPG、SVG 或 WebP。",
     "tooBig": "文件过大（最大 2 MB）。"
+  },
+  "chat": {
+    "heading": "问问助手",
+    "intro": "AI 助手",
+    "greeting": "你好！我是{{name}}。关于这个项目可以随时问我。",
+    "placeholder": "提个问题…",
+    "send": "发送",
+    "sending": "发送中…",
+    "error": "对话失败，请重试。",
+    "notConfigured": "助手尚未配置 —— 请在 Netlify 设置 ANTHROPIC_API_KEY 并重新部署。"
   },
   "mascot": {
     "name": "巧巧",

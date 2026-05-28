@@ -5,6 +5,7 @@ import { useFetch } from '../lib/useFetch'
 import { localized } from '../lib/supabase'
 import { Loading, ErrorState } from '../components/Status'
 import BackLink from '../components/BackLink'
+import AIChat from '../components/AIChat'
 
 export default function ProjectDetail() {
   const { id } = useParams()
@@ -79,6 +80,11 @@ export default function ProjectDetail() {
           </div>
         </div>
       )}
+
+      <div className="detail-section">
+        <h2>{t('chat.heading')}</h2>
+        <AIChat project={project} />
+      </div>
     </div>
   )
 }

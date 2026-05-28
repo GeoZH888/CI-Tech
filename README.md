@@ -83,6 +83,39 @@ The script is **idempotent** — it skips uploads/inserts that already exist,
 so re-running it is harmless. After it finishes, refresh the live site;
 the three new cards should appear with logos.
 
+## 3b. AI assistant (Claude) — optional but recommended
+
+Each project detail page has a mascot-led chat widget (巧巧 in ZH, Claudio in
+IT/EN) that introduces the project and answers questions about it. It's backed
+by `netlify/functions/chat.mjs`, which calls Claude through the Anthropic API.
+
+**Setup:**
+
+```powershell
+# 1. Get an Anthropic API key: https://console.anthropic.com/settings/keys
+# 2. Set it as a Netlify env var (production context):
+netlify env:set ANTHROPIC_API_KEY "sk-ant-api03-..."
+
+# 3. (Optional) override the model — defaults to claude-haiku-4-5
+#    Switch to claude-opus-4-7 for higher quality at ~5× the cost.
+# netlify env:set CHAT_MODEL "claude-opus-4-7"
+
+# 4. Redeploy so the function picks up the env var:
+npm run build
+netlify deploy --prod --dir=dist --functions=netlify/functions
+```
+
+**Cost expectations** (rough, per Q&A turn):
+
+| Model               | Input $/1M | Output $/1M | Typical turn |
+|---------------------|-----------:|------------:|-------------:|
+| `claude-haiku-4-5`  |       $1   |       $5    |   ~$0.001    |
+| `claude-opus-4-7`   |       $5   |      $25    |   ~$0.005    |
+
+The function trims history to the last 10 messages and caps each message at
+2000 chars to keep cost bounded. Without `ANTHROPIC_API_KEY` set, the widget
+shows a friendly "assistant isn't configured yet" message instead of failing.
+
 ## 4. Deploy (Netlify)
 
 ```powershell

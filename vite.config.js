@@ -12,10 +12,10 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['favicon.svg'],
+      includeAssets: ['favicon.png', 'apple-touch-icon.png', 'ci-tech-logo.png'],
       workbox: {
         // Never serve the cached app shell for admin/auth routes.
-        navigateFallbackDenylist: [/^\/admin/],
+        navigateFallbackDenylist: [/^\/admin/, /^\/\.netlify\/functions/, /^\/api\//],
         globPatterns: ['**/*.{js,css,html,svg,png,ico,woff2}']
       },
       manifest: {
@@ -23,7 +23,7 @@ export default defineConfig({
         short_name: 'CI-Tech',
         description:
           'A trilingual showcase of tech projects — education, cultural, community and tool apps — with an admin panel to manage them.',
-        theme_color: '#0e7490',
+        theme_color: '#0f1732',
         background_color: '#f4f7fb',
         display: 'standalone',
         start_url: '/',

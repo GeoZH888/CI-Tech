@@ -197,6 +197,14 @@ img {
 .brand .brand-mark {
   font-size: 1.35rem;
 }
+.brand-logo {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  background: #0f1732;
+  object-fit: contain;
+  flex-shrink: 0;
+}
 
 /* ---------- language switcher ---------- */
 .lang-switcher {
@@ -434,6 +442,49 @@ img {
 }
 .btn-ghost:hover {
   background: var(--mist-deep);
+}
+
+/* Card wrapper used when a super admin is browsing the public homepage.
+   Surfaces the publish state visually and adds quick-action controls. */
+.admin-card-wrap {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+.admin-card-wrap.is-hidden .project-card {
+  opacity: 0.65;
+  border-style: dashed;
+}
+.hidden-badge {
+  position: absolute;
+  top: 0.5rem;
+  left: 0.5rem;
+  z-index: 2;
+  background: rgba(15, 23, 50, 0.85);
+  color: #fff;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 0.2rem 0.55rem;
+  border-radius: 999px;
+}
+.admin-quick {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.5rem 0.7rem;
+  margin-top: -0.25rem;
+  background: var(--surface);
+  border: 1px solid var(--surface-border);
+  border-top: none;
+  border-radius: 0 0 var(--radius) var(--radius);
+  box-shadow: var(--shadow-sm);
+}
+
+.hidden-stat strong {
+  color: var(--slate-soft);
 }
 
 /* ---------- detail page ---------- */
@@ -701,6 +752,118 @@ img {
   background: #dcfce7;
   border-color: #86efac;
   color: #15803d;
+}
+
+/* ---------- AI chat widget (project detail) ---------- */
+.ai-chat {
+  border: 1px solid var(--surface-border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  display: flex;
+  flex-direction: column;
+  max-width: 680px;
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+}
+.ai-chat-header {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.6rem 0.9rem;
+  background: linear-gradient(180deg, var(--mist-deep), var(--surface));
+  border-bottom: 1px solid var(--surface-border);
+}
+.ai-chat-avatar {
+  display: inline-grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--surface);
+  border: 2px solid var(--accent-soft);
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
+}
+.ai-chat-title {
+  display: flex;
+  flex-direction: column;
+  font-size: 0.9rem;
+}
+.ai-chat-title strong {
+  color: var(--accent);
+  font-family: var(--font-display);
+}
+.ai-chat-messages {
+  padding: 0.85rem 0.9rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  min-height: 120px;
+  max-height: 380px;
+  overflow-y: auto;
+}
+.ai-chat-greeting {
+  color: var(--text-soft);
+  font-style: italic;
+  margin: 0;
+}
+.ai-chat-msg {
+  max-width: 85%;
+  padding: 0.55rem 0.8rem;
+  border-radius: 14px;
+  font-size: 0.92rem;
+  line-height: 1.45;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.ai-chat-msg-user {
+  align-self: flex-end;
+  background: var(--accent);
+  color: #fff;
+  border-bottom-right-radius: 4px;
+}
+.ai-chat-msg-assistant {
+  align-self: flex-start;
+  background: var(--mist-deep);
+  color: var(--text);
+  border-bottom-left-radius: 4px;
+}
+.ai-chat-typing {
+  display: inline-flex;
+  gap: 4px;
+  padding: 0.7rem 0.9rem;
+}
+.ai-chat-typing span {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--text-soft);
+  animation: ai-chat-bounce 1.2s infinite ease-in-out;
+}
+.ai-chat-typing span:nth-child(2) { animation-delay: 0.15s; }
+.ai-chat-typing span:nth-child(3) { animation-delay: 0.3s; }
+@keyframes ai-chat-bounce {
+  0%, 80%, 100% { transform: scale(0.6); opacity: 0.5; }
+  40% { transform: scale(1); opacity: 1; }
+}
+.ai-chat-input {
+  display: flex;
+  gap: 0.5rem;
+  padding: 0.6rem 0.7rem;
+  border-top: 1px solid var(--surface-border);
+  background: var(--surface);
+}
+.ai-chat-input input {
+  flex: 1;
+  font: inherit;
+  padding: 0.55rem 0.75rem;
+  border: 1px solid var(--surface-border);
+  border-radius: 999px;
+  background: var(--mist);
+  color: var(--text);
+}
+.ai-chat-input input:focus {
+  outline: 2px solid var(--accent-soft);
+  border-color: var(--accent);
 }
 
 /* ---------- modal ---------- */

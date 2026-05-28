@@ -2,6 +2,18 @@
   command = "npm run build"
   publish = "dist"
 
+[functions]
+  directory = "netlify/functions"
+  node_bundler = "esbuild"
+
+# Functions take precedence over the SPA fallback below thanks to the explicit
+# rule for /api/chat → the chat function (also accessible at the default
+# /.netlify/functions/chat path).
+[[redirects]]
+  from = "/api/chat"
+  to = "/.netlify/functions/chat"
+  status = 200
+
 # SPA fallback so client-side routes (deep links like /admin, /project/:id)
 # resolve to index.html instead of 404ing.
 [[redirects]]
