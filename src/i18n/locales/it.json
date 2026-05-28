@@ -1,0 +1,100 @@
+{
+  "app": {
+    "name": "CI-Tech",
+    "tagline": "Una vetrina di progetti tech — istruzione, cultura, comunità e strumenti."
+  },
+  "nav": {
+    "home": "Home",
+    "admin": "Admin"
+  },
+  "home": {
+    "title": "Vetrina dei progetti",
+    "subtitle": "Esplora le app e le piattaforme realizzate per istruzione, cultura, comunità e strumenti."
+  },
+  "categories": {
+    "all": "Tutti",
+    "education": "Istruzione",
+    "cultural": "Cultura",
+    "community": "Comunità",
+    "tools": "Strumenti",
+    "other": "Altro"
+  },
+  "card": {
+    "visit": "Visita",
+    "details": "Dettagli",
+    "noUrl": "In arrivo"
+  },
+  "detail": {
+    "about": "Informazioni sul progetto",
+    "techStack": "Stack tecnologico",
+    "screenshots": "Screenshot",
+    "visitSite": "Visita il sito",
+    "category": "Categoria",
+    "notFound": "Progetto non trovato."
+  },
+  "common": {
+    "loading": "Caricamento…",
+    "back": "Indietro",
+    "empty": "Ancora nessun progetto. Esegui lo script seed in Supabase oppure aggiungine uno dal pannello admin.",
+    "loadError": "Impossibile caricare i dati. Controlla la configurazione di Supabase."
+  },
+  "auth": {
+    "title": "Accesso amministratore",
+    "subtitle": "Solo per super admin.",
+    "email": "Email",
+    "password": "Password",
+    "signIn": "Accedi",
+    "signingIn": "Accesso in corso…",
+    "denied": "Accesso negato — questo account non è un super admin.",
+    "failed": "Accesso non riuscito. Controlla email e password.",
+    "notConfigured": "Supabase non è ancora configurato. Imposta i valori nel file .env."
+  },
+  "admin": {
+    "title": "Gestisci progetti",
+    "reorderHint": "Trascina la maniglia per riordinare — le modifiche si salvano da sole.",
+    "addProject": "Aggiungi progetto",
+    "noProjects": "Ancora nessun progetto. Aggiungi il primo.",
+    "signedInAs": "Accesso come",
+    "viewSite": "Vai al sito",
+    "signOut": "Esci",
+    "edit": "Modifica",
+    "delete": "Elimina",
+    "cancel": "Annulla",
+    "published": "Pubblicato",
+    "hidden": "Nascosto",
+    "deleteTitle": "Eliminare il progetto?",
+    "deleteConfirm": "Eliminare \"{{name}}\"? L'operazione è irreversibile.",
+    "form": {
+      "addTitle": "Aggiungi progetto",
+      "editTitle": "Modifica progetto",
+      "name": "Nome",
+      "tagline": "Slogan",
+      "description": "Descrizione",
+      "category": "Categoria",
+      "url": "URL esterno",
+      "urlRequired": "È richiesto un URL esterno.",
+      "techStack": "Stack tecnologico (separato da virgole)",
+      "screenshots": "Screenshot (un URL per riga)",
+      "logo": "Logo",
+      "logoHint": "Trascina qui un'immagine o clicca per scegliere (PNG / JPG / SVG / WebP, ≤ 2 MB)",
+      "removeLogo": "Rimuovi logo",
+      "published": "Pubblicato (visibile sul sito pubblico)",
+      "save": "Salva",
+      "saving": "Salvataggio…"
+    }
+  },
+  "upload": {
+    "noFile": "Nessun file selezionato.",
+    "badType": "Tipo di file non supportato. Usa PNG, JPG, SVG o WebP.",
+    "tooBig": "File troppo grande (max 2 MB)."
+  },
+  "mascot": {
+    "name": "Claudio",
+    "tips": {
+      "home": "Tocca una scheda per visitare un progetto, o filtra per categoria in alto.",
+      "detail": "Premi \"Visita il sito\" per aprire il progetto in una nuova scheda.",
+      "login": "I super admin possono accedere qui per gestire i progetti.",
+      "admin": "Aggiungi, modifica, riordina e pubblica i tuoi progetti da questo pannello."
+    }
+  }
+}

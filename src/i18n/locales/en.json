@@ -1,0 +1,100 @@
+{
+  "app": {
+    "name": "CI-Tech",
+    "tagline": "A showcase of tech projects — education, culture, community & tools."
+  },
+  "nav": {
+    "home": "Home",
+    "admin": "Admin"
+  },
+  "home": {
+    "title": "Project Showcase",
+    "subtitle": "Explore the apps and platforms built across education, culture, community and tools."
+  },
+  "categories": {
+    "all": "All",
+    "education": "Education",
+    "cultural": "Cultural",
+    "community": "Community",
+    "tools": "Tools",
+    "other": "Other"
+  },
+  "card": {
+    "visit": "Visit",
+    "details": "Details",
+    "noUrl": "Coming soon"
+  },
+  "detail": {
+    "about": "About this project",
+    "techStack": "Tech stack",
+    "screenshots": "Screenshots",
+    "visitSite": "Visit live site",
+    "category": "Category",
+    "notFound": "Project not found."
+  },
+  "common": {
+    "loading": "Loading…",
+    "back": "Back",
+    "empty": "No projects yet. Run the seed script in Supabase, or add one from the admin panel.",
+    "loadError": "Couldn't load data. Check your Supabase configuration."
+  },
+  "auth": {
+    "title": "Admin sign in",
+    "subtitle": "Super admins only.",
+    "email": "Email",
+    "password": "Password",
+    "signIn": "Sign in",
+    "signingIn": "Signing in…",
+    "denied": "Access denied — this account is not a super admin.",
+    "failed": "Sign-in failed. Check your email and password.",
+    "notConfigured": "Supabase isn't configured yet. Set your .env values."
+  },
+  "admin": {
+    "title": "Manage projects",
+    "reorderHint": "Drag the handle to reorder — changes save automatically.",
+    "addProject": "Add project",
+    "noProjects": "No projects yet. Add your first one.",
+    "signedInAs": "Signed in as",
+    "viewSite": "View site",
+    "signOut": "Sign out",
+    "edit": "Edit",
+    "delete": "Delete",
+    "cancel": "Cancel",
+    "published": "Published",
+    "hidden": "Hidden",
+    "deleteTitle": "Delete project?",
+    "deleteConfirm": "Delete \"{{name}}\"? This can't be undone.",
+    "form": {
+      "addTitle": "Add project",
+      "editTitle": "Edit project",
+      "name": "Name",
+      "tagline": "Tagline",
+      "description": "Description",
+      "category": "Category",
+      "url": "External URL",
+      "urlRequired": "An external URL is required.",
+      "techStack": "Tech stack (comma-separated)",
+      "screenshots": "Screenshots (one URL per line)",
+      "logo": "Logo",
+      "logoHint": "Drag an image here or click to choose (PNG / JPG / SVG / WebP, ≤ 2 MB)",
+      "removeLogo": "Remove logo",
+      "published": "Published (visible on the public site)",
+      "save": "Save",
+      "saving": "Saving…"
+    }
+  },
+  "upload": {
+    "noFile": "No file selected.",
+    "badType": "Unsupported file type. Use PNG, JPG, SVG, or WebP.",
+    "tooBig": "File too large (max 2 MB)."
+  },
+  "mascot": {
+    "name": "Claudio",
+    "tips": {
+      "home": "Tap a card to visit a project, or filter by category at the top.",
+      "detail": "Hit \"Visit live site\" to open the project in a new tab.",
+      "login": "Super admins can sign in here to manage projects.",
+      "admin": "Add, edit, reorder and publish your projects from this panel."
+    }
+  }
+}
