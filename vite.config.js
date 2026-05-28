@@ -16,7 +16,12 @@ export default defineConfig({
       workbox: {
         // Never serve the cached app shell for admin/auth routes.
         navigateFallbackDenylist: [/^\/admin/, /^\/\.netlify\/functions/, /^\/api\//],
-        globPatterns: ['**/*.{js,css,html,svg,png,ico,woff2}']
+        globPatterns: ['**/*.{js,css,html,svg,png,ico,woff2}'],
+        // Drop any precache entries left over from a previous SW version so
+        // users don't get stuck on old bundles after a deploy.
+        cleanupOutdatedCaches: true,
+        clientsClaim: true,
+        skipWaiting: true
       },
       manifest: {
         name: 'CI-Tech — Project Showcase',

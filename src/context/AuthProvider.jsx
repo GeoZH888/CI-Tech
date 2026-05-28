@@ -23,13 +23,26 @@ export function AuthProvider({ children }) {
   useEffect(() => {
     let active = true
 
+    // Safety net: if Supabase Auth somehow never resolves (project paused,
+    // refresh-token round-trip hung, browser extension blocking the endpoint),
+    // unblock the UI after 5s so login / admin guards don't sit on a
+    // perpetual "Loading…". Real session data will catch up when it arrives.
+    const unblock = setTimeout(() => {
+      if (active) setLoading(false)
+    }, 5000)
+
     // Initial session on load.
     supabase.auth.getSession().then(async ({ data }) => {
       const s = data.session
       const p = s ? await fetchProfile(s.user.id) : null
       if (!active) return
+      clearTimeout(unblock)
       setSession(s)
       setProfile(p)
+      setLoading(false)
+    }).catch(() => {
+      if (!active) return
+      clearTimeout(unblock)
       setLoading(false)
     })
 
@@ -44,6 +57,7 @@ export function AuthProvider({ children }) {
 
     return () => {
       active = false
+      clearTimeout(unblock)
       sub.subscription.unsubscribe()
     }
   }, [])
