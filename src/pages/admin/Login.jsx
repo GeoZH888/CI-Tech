@@ -15,15 +15,15 @@ export default function Login() {
   const [busy, setBusy] = useState(false)
   // Pre-seed the "access denied" message if a non-admin was bounced here.
   const [error, setError] = useState(location.state?.denied ? 'denied' : '')
+  // We keep the raw error message in state so the user can see the real cause
+  // if it's not one of the known ones (denied / failed / timeout).
+  // (Must be declared BEFORE the early-return below — Rules of Hooks.)
+  const [rawError, setRawError] = useState('')
 
   // Already signed in as a super admin? Skip the form.
   if (!loading && session && isSuperAdmin) {
     return <Navigate to="/admin" replace />
   }
-
-  // We keep the raw error message in state so the user can see the real cause
-  // if it's not one of the known ones (denied / failed / timeout).
-  const [rawError, setRawError] = useState('')
 
   async function handleSubmit(e) {
     e.preventDefault()
