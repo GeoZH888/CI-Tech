@@ -12,11 +12,10 @@ import './Mascot.css'
  * The speech-bubble tip is trilingual and pulled from i18n (mascot.tips.<tipKey>),
  * so pass a `tipKey` matching the current page (e.g. "home", "detail", "admin").
  *
- * >>> REPLACE PLACEHOLDER ART HERE <<<
- * The avatars below are inline placeholder SVGs (clearly-female / clearly-male
- * friendly characters). To use final artwork, drop files into /public/mascots/
- * (e.g. qiaoqiao.png, claudio.png) and swap the <PlaceholderAvatar/> for:
- *   <img src={`/mascots/${isZh ? 'qiaoqiao' : 'claudio'}.png`} alt={name} />
+ * Claudio uses real artwork at /public/mascots/claudio.png (object-fit + object-
+ * position crop down to a face-and-shoulders avatar). 巧巧 still uses the
+ * placeholder SVG below — drop /public/mascots/qiaoqiao.png and swap her
+ * branch the same way Claudio is wired up.
  */
 
 function QiaoqiaoAvatar() {
@@ -46,24 +45,16 @@ function QiaoqiaoAvatar() {
 }
 
 function ClaudioAvatar() {
-  // Placeholder: friendly male guide — short hair, moustache.
+  // Real artwork — full-body source, cropped to head/shoulders via CSS.
   return (
-    <svg viewBox="0 0 80 80" width="56" height="56" aria-hidden="true">
-      <circle cx="40" cy="40" r="38" fill="#bcd0a0" />
-      {/* hair */}
-      <path d="M24 34c0-9 7-15 16-15s16 6 16 15c-4-3-9-4-16-4s-12 1-16 4z" fill="#3a2a1c" />
-      {/* face */}
-      <circle cx="40" cy="40" r="17" fill="#ffe0c2" />
-      {/* eyebrows */}
-      <path d="M31 35h6M43 35h6" stroke="#3a2a1c" strokeWidth="2" strokeLinecap="round" />
-      {/* eyes */}
-      <circle cx="34" cy="40" r="2.2" fill="#2e211a" />
-      <circle cx="46" cy="40" r="2.2" fill="#2e211a" />
-      {/* moustache (masculine cue) */}
-      <path d="M33 49c2 2 5 2 7 0 2 2 5 2 7 0" stroke="#3a2a1c" strokeWidth="2.4" fill="none" strokeLinecap="round" />
-      {/* smile */}
-      <path d="M36 52c2 2 6 2 8 0" stroke="#0e7490" strokeWidth="1.8" fill="none" strokeLinecap="round" />
-    </svg>
+    <img
+      src="/mascots/claudio.png"
+      alt=""
+      aria-hidden="true"
+      className="mascot-photo"
+      width="56"
+      height="56"
+    />
   )
 }
 

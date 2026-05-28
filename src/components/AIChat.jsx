@@ -137,16 +137,15 @@ function Qiao() {
   )
 }
 function Claud() {
+  // Real artwork — see /public/mascots/claudio.png.
   return (
-    <svg viewBox="0 0 80 80" width="40" height="40" aria-hidden="true">
-      <circle cx="40" cy="40" r="38" fill="#bcd0a0" />
-      <path d="M24 34c0-9 7-15 16-15s16 6 16 15c-4-3-9-4-16-4s-12 1-16 4z" fill="#3a2a1c" />
-      <circle cx="40" cy="40" r="17" fill="#ffe0c2" />
-      <path d="M31 35h6M43 35h6" stroke="#3a2a1c" strokeWidth="2" strokeLinecap="round" />
-      <circle cx="34" cy="40" r="2.2" fill="#2e211a" />
-      <circle cx="46" cy="40" r="2.2" fill="#2e211a" />
-      <path d="M33 49c2 2 5 2 7 0 2 2 5 2 7 0" stroke="#3a2a1c" strokeWidth="2.4" fill="none" strokeLinecap="round" />
-      <path d="M36 52c2 2 6 2 8 0" stroke="#0e7490" strokeWidth="1.8" fill="none" strokeLinecap="round" />
-    </svg>
+    <img
+      src="/mascots/claudio.png"
+      alt=""
+      aria-hidden="true"
+      className="mascot-photo"
+      width="40"
+      height="40"
+    />
   )
 }

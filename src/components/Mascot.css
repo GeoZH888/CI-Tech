@@ -26,6 +26,18 @@
   transform: scale(1.06);
 }
 
+/* Real-art mascot photos (full-body source). object-fit + object-position
+   crops down to a head-and-shoulders avatar at any container size. The "y"
+   value targets the face (~21% from the top of the source image). */
+.mascot-photo {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+  object-position: 50% 8%;
+  display: block;
+}
+
 .mascot-bubble {
   position: relative;
   background: var(--surface);
