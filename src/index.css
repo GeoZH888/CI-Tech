@@ -583,6 +583,12 @@ img {
   font-weight: 700;
   color: var(--slate);
   padding: 0 0.3rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.translate-btn {
+  font-weight: 600;
 }
 .form-row {
   display: flex;
@@ -864,6 +870,115 @@ img {
 .ai-chat-input input:focus {
   outline: 2px solid var(--accent-soft);
   border-color: var(--accent);
+}
+
+/* ---------- IP Studio ---------- */
+.ip-char-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 1rem;
+  margin-top: 0.5rem;
+}
+.ip-char-card {
+  display: flex;
+  flex-direction: column;
+  background: var(--surface);
+  border: 1px solid var(--surface-border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+}
+.ip-char-img {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+  background: var(--mist-deep);
+}
+.ip-char-img.placeholder {
+  display: grid;
+  place-items: center;
+  font-family: var(--font-display);
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: var(--accent);
+}
+.ip-char-body {
+  padding: 0.7rem 0.9rem 0.8rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  flex: 1;
+}
+.ip-char-body p {
+  margin: 0;
+  font-size: 0.82rem;
+}
+
+.ip-variant-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 0.85rem;
+}
+.ip-variant {
+  margin: 0;
+  background: var(--surface);
+  border: 1px solid var(--surface-border);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+.ip-variant img {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+  background: var(--mist-deep);
+}
+.ip-variant figcaption {
+  padding: 0.5rem 0.7rem 0.3rem;
+  font-size: 0.85rem;
+}
+.ip-variant-actions {
+  display: flex;
+  gap: 0.3rem;
+  padding: 0.3rem 0.7rem 0.6rem;
+  justify-content: flex-end;
+}
+
+/* mascot variant picker on the project edit form */
+.mvp-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 0.6rem;
+}
+.mvp-tile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.45rem;
+  background: var(--surface);
+  border: 2px solid var(--surface-border);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-size: 0.78rem;
+  color: var(--text-soft);
+  transition: border-color 0.15s, transform 0.1s;
+}
+.mvp-tile img {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+  border-radius: var(--radius-sm);
+}
+.mvp-tile:hover {
+  transform: translateY(-1px);
+  border-color: var(--accent-soft);
+}
+.mvp-tile.active {
+  border-color: var(--accent);
+  color: var(--accent);
+  font-weight: 600;
 }
 
 /* ---------- modal ---------- */

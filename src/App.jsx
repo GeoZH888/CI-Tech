@@ -6,6 +6,7 @@ import ProjectDetail from './pages/ProjectDetail'
 import Login from './pages/admin/Login'
 import AdminDashboard from './pages/admin/AdminDashboard'
 import ProjectForm from './pages/admin/ProjectForm'
+import IPStudio from './pages/admin/IPStudio'
 import RequireSuperAdmin from './components/RequireSuperAdmin'
 
 // Maps the current path to a mascot tip key (trilingual, from i18n mascot.tips.*).
@@ -39,6 +40,10 @@ export default function App() {
         <Route
           path="/admin/edit/:id"
           element={<RequireSuperAdmin><ProjectForm /></RequireSuperAdmin>}
+        />
+        <Route
+          path="/admin/ip-studio"
+          element={<RequireSuperAdmin><IPStudio /></RequireSuperAdmin>}
         />
 
         <Route path="*" element={<Home />} />

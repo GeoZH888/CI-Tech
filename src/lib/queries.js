@@ -19,10 +19,12 @@ export async function getPublishedProjects() {
 }
 
 // One project by id (detail page). RLS still requires it to be published.
+// Joins the optional mascot variant so the chat widget can use it as Claudio's
+// avatar without an extra round-trip.
 export async function getProjectById(id) {
   const { data, error } = await supabase
     .from('ct_projects')
-    .select('*')
+    .select('*, mascot_variant:ct_ip_variants(image_url, scene)')
     .eq('id', id)
     .single()
   if (error) throw error

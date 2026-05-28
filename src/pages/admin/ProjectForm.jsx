@@ -3,6 +3,8 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { getProjectByIdAdmin, createProject, updateProject } from '../../lib/adminQueries'
 import { uploadLogo, deleteLogoByUrl, validateLogo, ACCEPT_ATTR } from '../../lib/storage'
+import { getVariants } from '../../lib/ipStudio'
+import { translate } from '../../lib/translate'
 import { Loading } from '../../components/Status'
 import AdminBar from '../../components/AdminBar'
 
@@ -18,7 +20,8 @@ const EMPTY = {
   tech_stack: '',     // comma-separated in the form
   screenshots: '',    // one URL per line in the form
   is_published: true,
-  logo_url: ''
+  logo_url: '',
+  mascot_variant_id: '' // optional FK → ct_ip_variants
 }
 
 export default function ProjectForm() {
@@ -32,6 +35,9 @@ export default function ProjectForm() {
   const [loading, setLoading] = useState(isEdit)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
+  const [mascotVariants, setMascotVariants] = useState([])
+  // Which language group is currently auto-translating, '' if none.
+  const [translating, setTranslating] = useState('')
 
   // logo state
   const [logoFile, setLogoFile] = useState(null)        // newly chosen File
@@ -64,8 +70,48 @@ export default function ProjectForm() {
     }
   }, [id, isEdit])
 
+  // Load IP Studio variants so admin can pick one as the project's mascot.
+  useEffect(() => {
+    let active = true
+    getVariants().then((v) => active && setMascotVariants(v)).catch(() => {})
+    return () => { active = false }
+  }, [])
+
   function set(field, value) {
     setForm((f) => ({ ...f, [field]: value }))
+  }
+
+  // Auto-translate one language group (name / tagline / description) from the
+  // most-filled-in field into the other two. Source = field with longest
+  // non-whitespace content; targets = the remaining language codes.
+  async function translateGroup(base) {
+    const candidates = ['zh', 'it', 'en']
+      .map((lng) => ({ lng, text: (form[`${base}_${lng}`] || '').trim() }))
+      .filter((c) => c.text.length > 0)
+      .sort((a, b) => b.text.length - a.text.length)
+    if (candidates.length === 0) {
+      setError(t('admin.form.translateEmpty'))
+      return
+    }
+    const source = candidates[0]
+    const targets = ['zh', 'it', 'en'].filter((l) => l !== source.lng)
+
+    setTranslating(base)
+    setError('')
+    try {
+      const result = await translate(source.text, source.lng, targets)
+      setForm((f) => {
+        const next = { ...f }
+        for (const [lng, tx] of Object.entries(result)) {
+          if (tx) next[`${base}_${lng}`] = tx
+        }
+        return next
+      })
+    } catch (err) {
+      setError(err.message || 'translate failed')
+    } finally {
+      setTranslating('')
+    }
   }
 
   function pickFile(file) {
@@ -112,7 +158,8 @@ export default function ProjectForm() {
         logo_url: logoUrl || null,
         tech_stack: form.tech_stack.split(',').map((s) => s.trim()).filter(Boolean),
         screenshots: form.screenshots.split('\n').map((s) => s.trim()).filter(Boolean),
-        is_published: form.is_published
+        is_published: form.is_published,
+        mascot_variant_id: form.mascot_variant_id || null
       }
 
       if (isEdit) {
@@ -185,7 +232,18 @@ export default function ProjectForm() {
           { base: 'description', el: 'textarea' }
         ].map(({ base, el }) => (
           <fieldset className="lang-group" key={base}>
-            <legend>{t(`admin.form.${base}`)}</legend>
+            <legend>
+              {t(`admin.form.${base}`)}
+              <button
+                type="button"
+                className="btn btn-ghost btn-sm translate-btn"
+                onClick={() => translateGroup(base)}
+                disabled={Boolean(translating)}
+                title={t('admin.form.translateHint')}
+              >
+                🌐 {translating === base ? t('admin.form.translating') : t('admin.form.translate')}
+              </button>
+            </legend>
             {LANGS.map((lng) => (
               <label className="field" key={lng}>
                 <span>{lng.toUpperCase()}</span>
@@ -245,6 +303,37 @@ export default function ProjectForm() {
             onChange={(e) => set('screenshots', e.target.value)}
           />
         </label>
+
+        {mascotVariants.length > 0 && (
+          <fieldset className="lang-group">
+            <legend>{t('admin.form.mascotVariant')}</legend>
+            <p className="muted" style={{ margin: '0 0 0.5rem', fontSize: '0.85rem' }}>
+              {t('admin.form.mascotVariantHint')}
+            </p>
+            <div className="mvp-grid">
+              <button
+                type="button"
+                className={`mvp-tile${!form.mascot_variant_id ? ' active' : ''}`}
+                onClick={() => set('mascot_variant_id', '')}
+              >
+                <img src="/mascots/claudio.png" alt="" />
+                <span>{t('admin.form.defaultMascot')}</span>
+              </button>
+              {mascotVariants.map((v) => (
+                <button
+                  key={v.id}
+                  type="button"
+                  className={`mvp-tile${form.mascot_variant_id === v.id ? ' active' : ''}`}
+                  onClick={() => set('mascot_variant_id', v.id)}
+                  title={v.scene || ''}
+                >
+                  <img src={v.image_url} alt="" loading="lazy" />
+                  <span>{v.scene || '—'}</span>
+                </button>
+              ))}
+            </div>
+          </fieldset>
+        )}
 
         <label className="checkbox-field">
           <input

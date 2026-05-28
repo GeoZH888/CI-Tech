@@ -178,7 +178,12 @@ export default function AdminDashboard() {
           <h1 className="page-title" style={{ margin: 0 }}>{t('admin.title')}</h1>
           <p className="page-subtitle" style={{ margin: '0.2rem 0 0' }}>{t('admin.reorderHint')}</p>
         </div>
-        <button className="btn" onClick={() => navigate('/admin/new')}>+ {t('admin.addProject')}</button>
+        <div style={{ display: 'flex', gap: '0.5rem' }}>
+          <button className="btn btn-ghost" onClick={() => navigate('/admin/ip-studio')}>
+            ✨ {t('ip.title')}
+          </button>
+          <button className="btn" onClick={() => navigate('/admin/new')}>+ {t('admin.addProject')}</button>
+        </div>
       </div>
 
       {actionError && <p className="auth-error">{actionError}</p>}

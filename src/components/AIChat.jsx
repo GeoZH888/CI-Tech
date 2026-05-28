@@ -69,7 +69,7 @@ export default function AIChat({ project }) {
     <section className="ai-chat" aria-label={t('chat.intro')}>
       <header className="ai-chat-header">
         <span className="ai-chat-avatar" aria-hidden="true">
-          <Claud />
+          <Claud src={project?.mascot_variant?.image_url} />
         </span>
         <div className="ai-chat-title">
           <strong>{name}</strong>
@@ -118,12 +118,12 @@ export default function AIChat({ project }) {
   )
 }
 
-// ----- Claudio avatar (real artwork — see /public/mascots/claudio.png) -----
-function Claud() {
-  // Real artwork — see /public/mascots/claudio.png.
+// ----- Claudio avatar (real artwork — defaults to /public/mascots/claudio.png,
+// or the project's chosen IP Studio variant when one is attached) ---------
+function Claud({ src = '/mascots/claudio.png' }) {
   return (
     <img
-      src="/mascots/claudio.png"
+      src={src}
       alt=""
       aria-hidden="true"
       className="mascot-photo"

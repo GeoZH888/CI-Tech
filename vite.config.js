@@ -14,14 +14,34 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.png', 'apple-touch-icon.png', 'ci-tech-logo.png'],
       workbox: {
-        // Never serve the cached app shell for admin/auth routes.
-        navigateFallbackDenylist: [/^\/admin/, /^\/\.netlify\/functions/, /^\/api\//],
-        globPatterns: ['**/*.{js,css,html,svg,png,ico,woff2}'],
-        // Drop any precache entries left over from a previous SW version so
-        // users don't get stuck on old bundles after a deploy.
+        // Never serve the cached app shell for admin/auth routes or any API.
+        navigateFallbackDenylist: [/^\/admin/, /^\/\.netlify\/functions/, /^\/api\//, /^\/sb\//],
+        // Precache only the *small* app shell — JS, CSS, HTML, favicon, fonts.
+        // Large images (logos, mascots, generated variants) go through the
+        // runtime image cache below instead, so the precache never balloons
+        // and the browser's storage usage doesn't climb on every visit.
+        globPatterns: ['**/*.{js,css,html,svg,ico,woff2}'],
+        // Defensive: skip any single file larger than 2 MB from precache
+        // (covers the JS bundle but excludes oversized images).
+        maximumFileSizeToCacheInBytes: 2 * 1024 * 1024,
+        // Evict old precache entries when a new SW takes over (no orphans).
         cleanupOutdatedCaches: true,
         clientsClaim: true,
-        skipWaiting: true
+        skipWaiting: true,
+        // Runtime caching: images load from network the first time you see
+        // them, are cached for 30 days, and the cache is capped at 30 entries
+        // so it can't grow without bound.
+        runtimeCaching: [
+          {
+            urlPattern: /\.(?:png|jpg|jpeg|webp|gif|svg)$/i,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'ct-images',
+              expiration: { maxEntries: 30, maxAgeSeconds: 30 * 24 * 60 * 60 },
+              cacheableResponse: { statuses: [0, 200] }
+            }
+          }
+        ]
       },
       manifest: {
         name: 'CI-Tech — Project Showcase',

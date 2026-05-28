@@ -116,6 +116,39 @@ The function trims history to the last 10 messages and caps each message at
 2000 chars to keep cost bounded. Without `ANTHROPIC_API_KEY` set, the widget
 shows a friendly "assistant isn't configured yet" message instead of failing.
 
+## 3c. IP Studio (super-admin character library + variant generation)
+
+A super-admin-only studio for managing branded characters (like Claudio) and
+generating Flux-Redux variants of them. Each variant can be attached to a
+project as its chat-widget avatar (`ct_projects.mascot_variant_id`).
+
+**One-time SQL setup** — in the Supabase SQL editor, run **`db/ip-studio.sql`**.
+It adds the tables (`ct_ip_characters`, `ct_ip_variants`), RLS policies,
+the `ip-characters` Storage bucket, and the `mascot_variant_id` column on
+`ct_projects`.
+
+**Netlify env vars** for `/api/generate-variant`:
+
+| Env var | Purpose | How to get it |
+|---|---|---|
+| `REPLICATE_API_TOKEN` | Calls Replicate to generate variants | https://replicate.com/account/api-tokens |
+| `SUPABASE_SERVICE_ROLE_KEY` | Writes generated variants to Storage + DB (bypasses RLS server-side; **secret**) | Supabase Dashboard → Project Settings → API → "service_role" (reveal) |
+| `SUPABASE_URL` | (Optional if already set as `VITE_SUPABASE_URL`) | Same as your local `.env` |
+| `SUPABASE_ANON_KEY` | (Optional if already set as `VITE_SUPABASE_ANON_KEY`) | Same as your local `.env` |
+| `REPLICATE_MODEL` | (Optional override; default `black-forest-labs/flux-redux-dev`) | For prompt-driven scene control try a PuLID-Flux model |
+
+```powershell
+netlify env:set REPLICATE_API_TOKEN "r8_..."
+netlify env:set SUPABASE_SERVICE_ROLE_KEY "eyJhbGciOiJ...secret..."
+netlify env:set SUPABASE_URL "https://<project>.supabase.co"
+netlify env:set SUPABASE_ANON_KEY "eyJhbGciOi...anon..."
+npm run build
+netlify deploy --prod --dir=dist --functions=netlify/functions
+```
+
+**Cost (rough):** ~$0.04 per variant on Flux Redux Dev. 10 characters × 10
+variants = $4. Plus negligible Supabase Storage costs.
+
 ## 4. Deploy (Netlify)
 
 ```powershell
