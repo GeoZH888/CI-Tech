@@ -115,10 +115,16 @@ export default async (req) => {
     },
     body: JSON.stringify({
       input: {
+        // We pass the reference image under every common field name; each
+        // model reads the one it knows about and ignores the rest.
+        //   redux_image       → BFL flux-redux-*
+        //   image             → generic img2img / many community models
+        //   main_face_image   → lucataco/flux-pulid
+        //   face_image        → fofr/flux-pulid and related PuLID forks
         redux_image: character.base_image_url,
-        // PuLID-style models read these; Redux ignores them silently.
         image: character.base_image_url,
         main_face_image: character.base_image_url,
+        face_image: character.base_image_url,
         prompt,
         num_outputs: n,
         output_format: 'png'

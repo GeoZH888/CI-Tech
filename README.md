@@ -149,6 +149,48 @@ netlify deploy --prod --dir=dist --functions=netlify/functions
 **Cost (rough):** ~$0.04 per variant on Flux Redux Dev. 10 characters × 10
 variants = $4. Plus negligible Supabase Storage costs.
 
+### Choosing a generation model
+
+The default `REPLICATE_MODEL=black-forest-labs/flux-redux-dev` is great at
+producing **more poses / angles / micro-variations of the same image**, but
+it doesn't strongly drive the scene from a text prompt — Redux is an
+image-variation model, not text-conditioned img2img.
+
+For **prompt-driven scene control** (e.g. "Claudio in a library reading",
+"Claudio at a coffee shop laptop") you want a **PuLID-Flux** model — it
+preserves the face from your reference image while letting the prompt
+control the scene. The generate-variant function already sends the
+reference under every common field name (`redux_image`, `image`,
+`main_face_image`, `face_image`), so swapping models is a one-line env-var
+change:
+
+```powershell
+# PuLID-Flux — prompt-driven scenes around the reference character
+netlify env:set REPLICATE_MODEL "lucataco/flux-pulid"
+
+# Then redeploy so the function picks up the new env var:
+npm run build
+netlify deploy --prod --dir=dist --functions=netlify/functions
+```
+
+Quick comparison:
+
+| Model | What it's good at | Prompt weight | Cost / image |
+|---|---|---:|---:|
+| `black-forest-labs/flux-redux-dev` (default) | Variations of the reference (poses, angles) | low | ~$0.04 |
+| `lucataco/flux-pulid` | Reference identity + scene from prompt | high | ~$0.05 |
+| `lucataco/flux-dev-pulid` | Same idea, slightly different version | high | ~$0.05 |
+| `fofr/flux-pulid` | Community fork; similar behavior | high | ~$0.05 |
+
+Check current versions and pricing at https://replicate.com — the slugs
+above match what's typically online but model authors occasionally
+rename/replace versions. Any model that accepts a reference image and a
+text prompt should work without code changes.
+
+If a chosen model needs **different input field names** (rare), edit
+`netlify/functions/generate-variant.mjs` — the `input` object inside the
+Replicate POST is where to add them.
+
 ## 4. Deploy (Netlify)
 
 ```powershell
