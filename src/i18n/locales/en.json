@@ -97,7 +97,9 @@
       "defaultMascot": "Default Claudio",
       "published": "Published (visible on the public site)",
       "save": "Save",
-      "saving": "Saving…"
+      "saving": "Saving…",
+      "saveTimeout": "Save took too long. Try once more — if it keeps failing, check your network or a browser extension blocking Supabase.",
+      "uploadTimeout": "Logo upload timed out. Try a smaller file or retry."
     }
   },
   "upload": {

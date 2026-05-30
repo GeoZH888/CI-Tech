@@ -133,6 +133,18 @@ export default function ProjectForm() {
     if (file) pickFile(file)
   }
 
+  // Hard ceiling on the whole save chain (upload + DB write + cleanup). Real
+  // saves complete in well under a second; anything past 20s is a stuck
+  // request and we want the button back, not a forever spinner.
+  function withTimeout(promise, ms = 20000, label = 'save') {
+    return Promise.race([
+      promise,
+      new Promise((_, reject) =>
+        setTimeout(() => reject(new Error(`${label}_timeout`)), ms)
+      )
+    ])
+  }
+
   async function handleSubmit(e) {
     e.preventDefault()
     setError('')
@@ -146,7 +158,11 @@ export default function ProjectForm() {
     try {
       let logoUrl = form.logo_url
       if (logoFile) {
-        logoUrl = await uploadLogo(logoFile, form.name_en || form.name_zh || 'logo')
+        logoUrl = await withTimeout(
+          uploadLogo(logoFile, form.name_en || form.name_zh || 'logo'),
+          30000,
+          'upload'
+        )
       }
 
       const payload = {
@@ -163,19 +179,34 @@ export default function ProjectForm() {
       }
 
       if (isEdit) {
-        await updateProject(id, payload)
+        await withTimeout(updateProject(id, payload), 20000, 'save')
       } else {
-        await createProject({ ...payload, sort_order: 999 }) // lands at the end; reorder to taste
+        await withTimeout(
+          createProject({ ...payload, sort_order: 999 }),
+          20000,
+          'save'
+        )
       }
 
       // Replaced the logo? Remove the old file (best-effort, after save succeeds).
+      // Wrapped in its own short race so a hung cleanup can't block navigation.
       if (logoFile && oldLogoUrl && oldLogoUrl !== logoUrl) {
-        await deleteLogoByUrl(oldLogoUrl)
+        try {
+          await withTimeout(deleteLogoByUrl(oldLogoUrl), 5000, 'cleanup')
+        } catch {
+          /* old file lingering in storage is harmless */
+        }
       }
 
       navigate('/admin', { replace: true })
     } catch (err) {
-      setError(err.message || 'save failed')
+      const msg = err?.message || String(err)
+      if (msg === 'save_timeout') setError(t('admin.form.saveTimeout'))
+      else if (msg === 'upload_timeout') setError(t('admin.form.uploadTimeout'))
+      else setError(msg)
+    } finally {
+      // Always release the button. Without this, success → navigate but a
+      // surprise error path could leave the form spinning indefinitely.
       setSaving(false)
     }
   }

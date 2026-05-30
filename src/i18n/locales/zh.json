@@ -97,7 +97,9 @@
       "defaultMascot": "默认 Claudio",
       "published": "发布（在公开站点显示）",
       "save": "保存",
-      "saving": "保存中…"
+      "saving": "保存中…",
+      "saveTimeout": "保存超时。请再试一次；如果仍失败，请检查网络或是否有浏览器扩展拦截 Supabase。",
+      "uploadTimeout": "Logo 上传超时。请使用更小的文件或重试。"
     }
   },
   "upload": {

@@ -97,7 +97,9 @@
       "defaultMascot": "Claudio predefinito",
       "published": "Pubblicato (visibile sul sito pubblico)",
       "save": "Salva",
-      "saving": "Salvataggio…"
+      "saving": "Salvataggio…",
+      "saveTimeout": "Il salvataggio ha impiegato troppo tempo. Riprova — se persiste, controlla la rete o un'estensione del browser che blocca Supabase.",
+      "uploadTimeout": "Caricamento del logo non riuscito (timeout). Prova con un file più piccolo o riprova."
     }
   },
   "upload": {
