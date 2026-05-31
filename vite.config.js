@@ -12,7 +12,7 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['favicon.png', 'apple-touch-icon.png', 'ci-tech-logo.png'],
+      includeAssets: ['favicon.png', 'apple-touch-icon.png', 'ci-world-logo.png'],
       workbox: {
         // Never serve the cached app shell for admin/auth routes or any API.
         navigateFallbackDenylist: [/^\/admin/, /^\/\.netlify\/functions/, /^\/api\//, /^\/sb\//],

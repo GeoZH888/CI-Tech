@@ -6,7 +6,7 @@ export default function Header() {
     <header className="site-header">
       <Link to="/" className="brand">
         <img
-          src="/ci-tech-logo.png"
+          src="/ci-world-logo.png"
           alt=""
           aria-hidden="true"
           className="brand-logo"
