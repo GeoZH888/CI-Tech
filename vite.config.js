@@ -28,10 +28,25 @@ export default defineConfig({
         cleanupOutdatedCaches: true,
         clientsClaim: true,
         skipWaiting: true,
-        // Runtime caching: images load from network the first time you see
-        // them, are cached for 30 days, and the cache is capped at 30 entries
-        // so it can't grow without bound.
+        // Runtime caching:
+        //  1. Force NetworkOnly for every API path we know about — Supabase
+        //     proxy (/sb/*), Netlify functions (/.netlify/functions/*), and
+        //     the /api/* alias. Without an explicit handler, Workbox's
+        //     default fetch listener has been observed to stall POST/PATCH
+        //     responses (admin "Save" hung forever). NetworkOnly bypasses
+        //     all SW handling and lets the request go straight to the
+        //     network. Registered per write method because Workbox's
+        //     default `method` is GET-only.
+        //  2. Cache image assets for 30 days, max 30 entries.
         runtimeCaching: [
+          ...['POST', 'PUT', 'PATCH', 'DELETE'].flatMap((method) => [
+            { urlPattern: ({ url }) => url.pathname.startsWith('/sb/'), handler: 'NetworkOnly', method },
+            { urlPattern: ({ url }) => url.pathname.startsWith('/api/'), handler: 'NetworkOnly', method },
+            { urlPattern: ({ url }) => url.pathname.startsWith('/.netlify/functions/'), handler: 'NetworkOnly', method }
+          ]),
+          { urlPattern: ({ url }) => url.pathname.startsWith('/sb/'), handler: 'NetworkOnly' },
+          { urlPattern: ({ url }) => url.pathname.startsWith('/api/'), handler: 'NetworkOnly' },
+          { urlPattern: ({ url }) => url.pathname.startsWith('/.netlify/functions/'), handler: 'NetworkOnly' },
           {
             urlPattern: /\.(?:png|jpg|jpeg|webp|gif|svg)$/i,
             handler: 'CacheFirst',
@@ -44,8 +59,8 @@ export default defineConfig({
         ]
       },
       manifest: {
-        name: 'CI-Tech — Project Showcase',
-        short_name: 'CI-Tech',
+        name: 'CI-WORLD — Project Showcase',
+        short_name: 'CI-WORLD',
         description:
           'A trilingual showcase of tech projects — education, cultural, community and tool apps — with an admin panel to manage them.',
         theme_color: '#0f1732',
