@@ -6,8 +6,8 @@ export default function Footer() {
   const year = new Date().getFullYear()
   return (
     <footer className="site-footer">
-      <span>© {year} CI-Tech · {t('app.tagline')}</span>
-      <a href="https://github.com/GeoZH888/CI-Tech" target="_blank" rel="noopener noreferrer">
+      <span>© {year} CI-WORLD · {t('app.tagline')}</span>
+      <a href="https://github.com/GeoZH888/CI-WORLD" target="_blank" rel="noopener noreferrer">
         GitHub ↗
       </a>
     </footer>

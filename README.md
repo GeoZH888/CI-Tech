@@ -1,4 +1,4 @@
-# CI-Tech — Project Showcase
+# CI-WORLD — Project Showcase
 
 A trilingual (🇨🇳 ZH / 🇮🇹 IT / 🇬🇧 EN) public showcase of tech projects, with a
 Super Admin panel to add / edit / delete / reorder projects and upload logos.

@@ -106,4 +106,4 @@ const { error: upsertErr } = await sb
 if (upsertErr) fail(`Failed to set role: ${upsertErr.message}`)
 
 console.log(`✓ Super admin ready: ${EMAIL}`)
-console.log('  Sign in at: https://ci-tech-showcase.netlify.app/admin/login')
+console.log('  Sign in at: https://ci-world.com/admin/login')

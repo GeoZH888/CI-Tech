@@ -17,7 +17,7 @@ export const isSupabaseConfigured = Boolean(
 // instead of talking to *.supabase.co directly. This bypasses desktop
 // firewalls / antivirus / endpoint-protection software that blocks POSTs
 // to "unfamiliar" cloud APIs — the browser only sees same-origin traffic
-// to ci-tech-showcase.netlify.app, and Netlify forwards to Supabase
+// to ci-world-showcase.netlify.app, and Netlify forwards to Supabase
 // server-side. Local dev (`npm run dev`) still hits Supabase directly.
 function resolveSupabaseUrl() {
   if (!isSupabaseConfigured) return 'https://placeholder.supabase.co'

@@ -11,7 +11,7 @@ export default function Header() {
           aria-hidden="true"
           className="brand-logo"
         />
-        <span>CI-Tech</span>
+        <span>CI-WORLD</span>
       </Link>
       <LanguageSwitcher />
     </header>

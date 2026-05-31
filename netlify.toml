@@ -17,7 +17,7 @@
 # Supabase proxy: forwards every /sb/* request through Netlify to the
 # Supabase project. Lets desktops where antivirus / endpoint protection /
 # corporate firewalls block POSTs to *.supabase.co still reach the API —
-# the browser only sees ci-tech-showcase.netlify.app traffic.
+# the browser only sees ci-world-showcase.netlify.app traffic.
 # status 200 + force=true makes this a true proxy, not an HTTP redirect.
 [[redirects]]
   from = "/sb/*"
