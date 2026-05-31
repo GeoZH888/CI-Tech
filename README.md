@@ -149,6 +149,30 @@ netlify deploy --prod --dir=dist --functions=netlify/functions
 **Cost (rough):** ~$0.04 per variant on Flux Redux Dev. 10 characters × 10
 variants = $4. Plus negligible Supabase Storage costs.
 
+### Logo generation (Stability AI)
+
+The "Generate project logo" panel at the bottom of `/admin/ip-studio` uses
+Stability AI to make 1–4 logo candidates for any selected project. Clicking
+"Use as logo" on a candidate writes its URL to `ct_projects.logo_url` and
+deletes the previous logo from Storage.
+
+Add the Stability key on Netlify (get one at https://platform.stability.ai/account/keys):
+
+```powershell
+netlify env:set STABILITY_API_KEY "sk-..."
+# Optional model overrides:
+# netlify env:set STABILITY_LOGO_MODEL "core"   # default — cheapest, ~$0.03/img
+# netlify env:set STABILITY_LOGO_MODEL "sd3"    # SD3.5 Large, ~$0.065/img
+# netlify env:set STABILITY_LOGO_MODEL "ultra"  # Stable Image Ultra, ~$0.08/img
+```
+
+The variant generator also accepts `provider: 'stability'` (dropdown in the
+Generate-variant form) — it uses Stability's `control/style` endpoint to
+preserve the reference character's appearance while applying the scene
+prompt. For best character consistency, Replicate Flux Redux remains the
+recommended default; switch to Stability when you want speed or different
+aesthetic baselines.
+
 ### Choosing a generation model
 
 The default `REPLICATE_MODEL=black-forest-labs/flux-redux-dev` is great at

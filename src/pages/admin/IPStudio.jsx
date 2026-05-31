@@ -11,35 +11,54 @@ import {
   deleteVariant,
   uploadCharacterBaseImage,
   generateVariant,
+  generateLogos,
+  setProjectLogo,
   CHAR_IMAGE_ACCEPT,
   validateCharImage
 } from '../../lib/ipStudio'
+import { getAllProjects } from '../../lib/adminQueries'
 
 export default function IPStudio() {
   const { t } = useTranslation()
 
+  // ---------- shared state ----------
   const [characters, setCharacters] = useState(null)
   const [variants, setVariants] = useState([])
+  const [projects, setProjects] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
 
-  // character form (inline; null = closed, {} = create, {...row} = edit)
+  // ---------- character form (null = closed, {} = create, row = edit) ----------
   const [charForm, setCharForm] = useState(null)
-  // generation
+
+  // ---------- variant generation ----------
   const [genCharId, setGenCharId] = useState('')
   const [genScene, setGenScene] = useState('')
   const [genN, setGenN] = useState(2)
+  const [genProvider, setGenProvider] = useState('replicate')
   const [genBusy, setGenBusy] = useState(false)
   const [genError, setGenError] = useState('')
 
+  // ---------- logo generation ----------
+  const [logoProjectId, setLogoProjectId] = useState('')
+  const [logoPrompt, setLogoPrompt] = useState('')
+  const [logoAspect, setLogoAspect] = useState('1:1')
+  const [logoN, setLogoN] = useState(4)
+  const [logoBusy, setLogoBusy] = useState(false)
+  const [logoError, setLogoError] = useState('')
+  const [logoCandidates, setLogoCandidates] = useState([])
+  const [logoSavedMsg, setLogoSavedMsg] = useState('')
+
   useEffect(() => {
     let active = true
-    Promise.all([getCharacters(), getVariants()])
-      .then(([c, v]) => {
+    Promise.all([getCharacters(), getVariants(), getAllProjects()])
+      .then(([c, v, p]) => {
         if (!active) return
         setCharacters(c)
         setVariants(v)
+        setProjects(p)
         if (c.length > 0) setGenCharId((id) => id || c[0].id)
+        if (p.length > 0) setLogoProjectId((id) => id || p[0].id)
         setLoading(false)
       })
       .catch((err) => {
@@ -47,9 +66,7 @@ export default function IPStudio() {
         setError(err.message || 'load failed')
         setLoading(false)
       })
-    return () => {
-      active = false
-    }
+    return () => { active = false }
   }, [])
 
   // ---------- character CRUD ----------
@@ -83,7 +100,7 @@ export default function IPStudio() {
   }
 
   // ---------- variant generation ----------
-  async function handleGenerate(e) {
+  async function handleGenerateVariant(e) {
     e?.preventDefault()
     if (!genCharId || genBusy) return
     setGenBusy(true)
@@ -92,18 +109,14 @@ export default function IPStudio() {
       const { variants: fresh } = await generateVariant({
         characterId: genCharId,
         scene: genScene.trim(),
-        numOutputs: genN
+        numOutputs: genN,
+        provider: genProvider
       })
       setVariants((list) => [...fresh, ...list])
     } catch (err) {
-      // surface useful diagnostics from the function
-      if (err.code === 'still_processing') {
-        setGenError(t('ip.stillProcessing'))
-      } else if (err.code === 'not_configured') {
-        setGenError(err.message || t('ip.notConfigured'))
-      } else {
-        setGenError(err.message || t('ip.generationFailed'))
-      }
+      if (err.code === 'still_processing') setGenError(t('ip.stillProcessing'))
+      else if (err.code === 'not_configured') setGenError(err.message || t('ip.notConfigured'))
+      else setGenError(err.message || t('ip.generationFailed'))
     } finally {
       setGenBusy(false)
     }
@@ -116,6 +129,46 @@ export default function IPStudio() {
       setVariants((list) => list.filter((x) => x.id !== v.id))
     } catch (err) {
       setError(err.message || 'delete failed')
+    }
+  }
+
+  // ---------- logo generation ----------
+  async function handleGenerateLogos(e) {
+    e?.preventDefault()
+    if (!logoProjectId || logoBusy) return
+    setLogoBusy(true)
+    setLogoError('')
+    setLogoSavedMsg('')
+    setLogoCandidates([])
+    try {
+      const { candidates } = await generateLogos({
+        projectId: logoProjectId,
+        prompt: logoPrompt.trim(),
+        numOutputs: logoN,
+        aspectRatio: logoAspect
+      })
+      setLogoCandidates(candidates || [])
+    } catch (err) {
+      if (err.code === 'not_configured') setLogoError(err.message || t('ip.logoNotConfigured'))
+      else setLogoError(err.message || t('ip.logoFailed'))
+    } finally {
+      setLogoBusy(false)
+    }
+  }
+
+  async function useLogo(candidate) {
+    if (!logoProjectId) return
+    setLogoError('')
+    try {
+      await setProjectLogo(logoProjectId, candidate.url)
+      setProjects((ps) =>
+        ps.map((p) => (p.id === logoProjectId ? { ...p, logo_url: candidate.url } : p))
+      )
+      const proj = projects.find((p) => p.id === logoProjectId)
+      setLogoSavedMsg(t('ip.logoSaved', { name: proj?.name_en || proj?.name_zh || '' }))
+      // keep candidates visible so user can pick another if they want
+    } catch (err) {
+      setLogoError(err.message || 'save failed')
     }
   }
 
@@ -187,31 +240,33 @@ export default function IPStudio() {
         </div>
       </section>
 
-      {/* ---------- generate ---------- */}
+      {/* ---------- generate variant ---------- */}
       <section className="detail-section">
         <h2>{t('ip.generate')}</h2>
         {characters.length === 0 ? (
           <p className="muted">{t('ip.addCharacterFirst')}</p>
         ) : (
-          <form className="stack" onSubmit={handleGenerate} style={{ maxWidth: 640 }}>
+          <form className="stack" onSubmit={handleGenerateVariant} style={{ maxWidth: 720 }}>
             <div className="form-row">
               <label className="field" style={{ flex: 2 }}>
                 <span>{t('ip.character')}</span>
-                <select
-                  value={genCharId}
-                  onChange={(e) => setGenCharId(e.target.value)}
-                >
+                <select value={genCharId} onChange={(e) => setGenCharId(e.target.value)}>
                   {characters.map((c) => (
                     <option key={c.id} value={c.id}>{c.name}</option>
                   ))}
                 </select>
               </label>
               <label className="field">
+                <span>{t('ip.provider')}</span>
+                <select value={genProvider} onChange={(e) => setGenProvider(e.target.value)}>
+                  <option value="replicate">Replicate · Flux Redux</option>
+                  <option value="stability">Stability · SD3.5 style</option>
+                </select>
+              </label>
+              <label className="field">
                 <span>{t('ip.numOutputs')}</span>
                 <select value={genN} onChange={(e) => setGenN(Number(e.target.value))}>
-                  {[1, 2, 3, 4].map((n) => (
-                    <option key={n} value={n}>{n}</option>
-                  ))}
+                  {[1, 2, 3, 4].map((n) => <option key={n} value={n}>{n}</option>)}
                 </select>
               </label>
             </div>
@@ -260,6 +315,86 @@ export default function IPStudio() {
               )
             })}
           </div>
+        )}
+      </section>
+
+      {/* ---------- generate logo (Stability) ---------- */}
+      <section className="detail-section">
+        <h2>{t('ip.logoStudio')}</h2>
+        <p className="muted" style={{ marginTop: 0 }}>{t('ip.logoStudioHint')}</p>
+
+        {projects.length === 0 ? (
+          <p className="muted">{t('ip.noProjects')}</p>
+        ) : (
+          <form className="stack" onSubmit={handleGenerateLogos} style={{ maxWidth: 720 }}>
+            <div className="form-row">
+              <label className="field" style={{ flex: 2 }}>
+                <span>{t('ip.targetProject')}</span>
+                <select value={logoProjectId} onChange={(e) => setLogoProjectId(e.target.value)}>
+                  {projects.map((p) => (
+                    <option key={p.id} value={p.id}>
+                      {p.name_en || p.name_zh || p.name_it || '—'}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label className="field">
+                <span>{t('ip.aspectRatio')}</span>
+                <select value={logoAspect} onChange={(e) => setLogoAspect(e.target.value)}>
+                  <option value="1:1">1:1</option>
+                  <option value="4:3">4:3</option>
+                  <option value="3:4">3:4</option>
+                  <option value="16:9">16:9</option>
+                  <option value="9:16">9:16</option>
+                </select>
+              </label>
+              <label className="field">
+                <span>{t('ip.numOutputs')}</span>
+                <select value={logoN} onChange={(e) => setLogoN(Number(e.target.value))}>
+                  {[1, 2, 3, 4].map((n) => <option key={n} value={n}>{n}</option>)}
+                </select>
+              </label>
+            </div>
+
+            <label className="field">
+              <span>{t('ip.logoPrompt')}</span>
+              <textarea
+                rows={2}
+                placeholder={t('ip.logoPromptHint')}
+                value={logoPrompt}
+                onChange={(e) => setLogoPrompt(e.target.value)}
+              />
+            </label>
+
+            {logoError && <p className="auth-error">{logoError}</p>}
+            {logoSavedMsg && <p className="muted" style={{ color: 'var(--accent)' }}>✓ {logoSavedMsg}</p>}
+
+            <button className="btn" type="submit" disabled={logoBusy || !logoProjectId}>
+              {logoBusy ? t('ip.generating') : `🎨 ${t('ip.generateLogos')}`}
+            </button>
+          </form>
+        )}
+
+        {logoCandidates.length > 0 && (
+          <>
+            <h3 style={{ marginTop: '1.5rem' }}>{t('ip.candidates')}</h3>
+            <div className="ip-variant-grid">
+              {logoCandidates.map((c, i) => (
+                <figure key={i} className="ip-variant">
+                  <img src={c.url} alt={`candidate ${i + 1}`} loading="lazy" />
+                  <figcaption>
+                    <span className="muted" style={{ fontSize: '0.75rem' }}>{c.model}</span>
+                  </figcaption>
+                  <div className="ip-variant-actions">
+                    <a className="btn btn-ghost btn-sm" href={c.url} target="_blank" rel="noopener noreferrer">↗</a>
+                    <button className="btn btn-sm" onClick={() => useLogo(c)}>
+                      ✓ {t('ip.useAsLogo')}
+                    </button>
+                  </div>
+                </figure>
+              ))}
+            </div>
+          </>
         )}
       </section>
     </div>

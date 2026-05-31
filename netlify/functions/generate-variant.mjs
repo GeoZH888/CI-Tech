@@ -1,33 +1,42 @@
 // POST /api/generate-variant
 //
-// Generates one or more variant images of an IP character using Replicate
-// (Flux Redux by default), saves the outputs to the ip-characters Supabase
-// Storage bucket, and inserts ct_ip_variants rows.
+// Generates one or more variant images of an IP character. Two providers:
 //
-// Body: { character_id, scene, num_outputs (1-4) }
-// Auth: Authorization: Bearer <session.access_token>  — must be a super_admin
+//   provider: 'replicate'  (default)  Flux-Redux / PuLID-Flux on Replicate.
+//                                     Best for character-consistent variations.
+//   provider: 'stability'             Stability AI control/style: preserves
+//                                     the reference image's style/identity
+//                                     while applying the scene prompt.
 //
-// Required env vars on Netlify:
-//   REPLICATE_API_TOKEN
-//   SUPABASE_SERVICE_ROLE_KEY        — used to write to Storage + DB server-side
+// Body: { character_id, scene, num_outputs (1-4), provider? }
+// Auth: Authorization: Bearer <session.access_token>  — must be super_admin
+//
+// Required env vars on Netlify (depends on provider):
+//   REPLICATE_API_TOKEN              (when provider='replicate')
+//   STABILITY_API_KEY                (when provider='stability')
+//   SUPABASE_SERVICE_ROLE_KEY        — for Storage write + DB insert
 //   SUPABASE_URL (or VITE_SUPABASE_URL)
 //   SUPABASE_ANON_KEY (or VITE_SUPABASE_ANON_KEY)
 //
 // Optional:
 //   REPLICATE_MODEL                  — default 'black-forest-labs/flux-redux-dev'
-//                                      For prompt-driven character-in-scene
-//                                      variants try a PuLID-Flux model.
+//   STABILITY_VARIANT_ENDPOINT       — default 'control/style' (style transfer);
+//                                       try 'control/structure' for stricter
+//                                       composition preservation.
 
 import { createClient } from '@supabase/supabase-js'
 
 const REPLICATE_API = 'https://api.replicate.com/v1'
-const DEFAULT_MODEL = 'black-forest-labs/flux-redux-dev'
+const STABILITY_API = 'https://api.stability.ai/v2beta/stable-image'
+const DEFAULT_REPLICATE_MODEL = 'black-forest-labs/flux-redux-dev'
 
 const SUPABASE_URL = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL
 const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY
 const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY
 const REPLICATE_TOKEN = process.env.REPLICATE_API_TOKEN
-const MODEL = process.env.REPLICATE_MODEL || DEFAULT_MODEL
+const STABILITY_KEY = process.env.STABILITY_API_KEY
+const REPLICATE_MODEL = process.env.REPLICATE_MODEL || DEFAULT_REPLICATE_MODEL
+const STABILITY_ENDPOINT = process.env.STABILITY_VARIANT_ENDPOINT || 'control/style'
 
 function json(body, status = 200) {
   return new Response(JSON.stringify(body), {
@@ -44,17 +53,160 @@ function slugify(s, max = 30) {
     .slice(0, max) || 'x'
 }
 
+// ----- Replicate: kick a prediction, poll until ready, download N outputs -----
+async function generateWithReplicate(character, prompt, n) {
+  const [owner, modelName] = REPLICATE_MODEL.split('/')
+  if (!owner || !modelName) throw new Error(`bad REPLICATE_MODEL: ${REPLICATE_MODEL}`)
+
+  const predResp = await fetch(`${REPLICATE_API}/models/${owner}/${modelName}/predictions`, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${REPLICATE_TOKEN}`,
+      'Content-Type': 'application/json',
+      Prefer: 'wait=8'
+    },
+    body: JSON.stringify({
+      input: {
+        // Each model reads what it knows about; the rest are ignored.
+        redux_image: character.base_image_url,
+        image: character.base_image_url,
+        main_face_image: character.base_image_url,
+        face_image: character.base_image_url,
+        prompt,
+        num_outputs: n,
+        output_format: 'png'
+      }
+    })
+  })
+  if (!predResp.ok) {
+    const t = await predResp.text().catch(() => '')
+    throw new Error(`replicate ${predResp.status}: ${t.slice(0, 200)}`)
+  }
+  let prediction = await predResp.json()
+
+  const start = Date.now()
+  while (['starting', 'processing'].includes(prediction.status)) {
+    if (Date.now() - start > 6000) {
+      const err = new Error('still_processing')
+      err.code = 'still_processing'
+      err.prediction_id = prediction.id
+      throw err
+    }
+    await new Promise((r) => setTimeout(r, 1500))
+    const p = await fetch(prediction.urls.get, {
+      headers: { Authorization: `Bearer ${REPLICATE_TOKEN}` }
+    })
+    if (!p.ok) throw new Error(`replicate poll ${p.status}`)
+    prediction = await p.json()
+  }
+  if (prediction.status !== 'succeeded') {
+    throw new Error(prediction.error || prediction.status)
+  }
+
+  const urls = Array.isArray(prediction.output)
+    ? prediction.output
+    : prediction.output ? [prediction.output] : []
+  const buffers = []
+  for (const url of urls) {
+    if (!url) continue
+    const r = await fetch(url)
+    if (!r.ok) continue
+    buffers.push(Buffer.from(await r.arrayBuffer()))
+  }
+  return {
+    buffers,
+    meta: { model: REPLICATE_MODEL, prediction_id: prediction.id, provider: 'replicate' }
+  }
+}
+
+// ----- Stability: N parallel control/style requests with the reference image -----
+async function generateWithStability(character, prompt, n) {
+  const refResp = await fetch(character.base_image_url)
+  if (!refResp.ok) throw new Error(`could not fetch base image: ${refResp.status}`)
+  const refBuf = Buffer.from(await refResp.arrayBuffer())
+
+  const endpoint = `${STABILITY_API}/${STABILITY_ENDPOINT}`
+  const ts = Date.now()
+
+  async function one(i) {
+    const form = new FormData()
+    // The Stability "control/style" endpoint expects 'image' as the reference
+    // and 'prompt' as the desired scene.
+    form.append('image', new Blob([refBuf], { type: 'image/png' }), 'ref.png')
+    form.append('prompt', prompt || 'character in a new scene')
+    form.append('output_format', 'png')
+    form.append('fidelity', '0.6')
+    form.append('seed', String(ts + i * 7919))
+
+    const r = await fetch(endpoint, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${STABILITY_KEY}`,
+        Accept: 'image/*'
+      },
+      body: form
+    })
+    if (!r.ok) {
+      const t = await r.text().catch(() => '')
+      throw new Error(`stability ${r.status}: ${t.slice(0, 200)}`)
+    }
+    return Buffer.from(await r.arrayBuffer())
+  }
+
+  const settled = await Promise.allSettled(Array.from({ length: n }, (_, i) => one(i)))
+  const buffers = settled.filter((r) => r.status === 'fulfilled').map((r) => r.value)
+  if (buffers.length === 0) {
+    const firstErr = settled.find((r) => r.status === 'rejected')
+    throw new Error(firstErr?.reason?.message || 'stability: all candidates failed')
+  }
+  return {
+    buffers,
+    meta: { model: `stability/${STABILITY_ENDPOINT}`, provider: 'stability' }
+  }
+}
+
+// ----- Shared: upload buffers + insert ct_ip_variants rows -----
+async function persistVariants(sbAdmin, character, scene, prompt, buffers, meta) {
+  const charSlug = slugify(character.name)
+  const sceneSlug = slugify(scene || 'variant', 24)
+  const ts = Date.now()
+  const variants = []
+
+  for (let i = 0; i < buffers.length; i++) {
+    const buf = buffers[i]
+    if (!buf) continue
+    const path = `variants/${charSlug}-${sceneSlug}-${ts}-${i}.png`
+    const { error: upErr } = await sbAdmin.storage
+      .from('ip-characters')
+      .upload(path, buf, { contentType: 'image/png', upsert: false })
+    if (upErr) continue
+    const publicUrl = sbAdmin.storage.from('ip-characters').getPublicUrl(path).data.publicUrl
+    const { data: variant, error: insErr } = await sbAdmin
+      .from('ct_ip_variants')
+      .insert({
+        character_id: character.id,
+        scene: scene || null,
+        prompt,
+        image_url: publicUrl,
+        metadata: meta
+      })
+      .select()
+      .single()
+    if (!insErr && variant) variants.push(variant)
+  }
+  return variants
+}
+
+// ============================================================================
 export default async (req) => {
   if (req.method !== 'POST') return json({ error: 'method_not_allowed' }, 405)
 
-  // -------- env-var checks --------
-  if (!REPLICATE_TOKEN) return json({ error: 'not_configured', message: 'REPLICATE_API_TOKEN not set' }, 503)
   if (!SERVICE_KEY) return json({ error: 'not_configured', message: 'SUPABASE_SERVICE_ROLE_KEY not set' }, 503)
   if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
     return json({ error: 'not_configured', message: 'Supabase URL/anon key not set on Netlify' }, 503)
   }
 
-  // -------- auth: caller must be a super_admin --------
+  // auth: super_admin only
   const authHeader = req.headers.get('authorization') || ''
   if (!authHeader.startsWith('Bearer ')) return json({ error: 'unauthorized' }, 401)
   const userToken = authHeader.slice(7)
@@ -72,20 +224,25 @@ export default async (req) => {
     .maybeSingle()
   if (profile?.role !== 'super_admin') return json({ error: 'forbidden' }, 403)
 
-  // -------- parse body --------
   let body
   try { body = await req.json() } catch { return json({ error: 'invalid_json' }, 400) }
 
   const { character_id, scene, num_outputs } = body || {}
   if (!character_id) return json({ error: 'invalid_request', message: 'character_id required' }, 400)
   const n = Math.min(4, Math.max(1, Number(num_outputs) || 1))
+  const provider = (body?.provider || 'replicate').toString().toLowerCase()
 
-  // -------- admin client for writes (bypasses RLS server-side) --------
+  if (provider === 'stability' && !STABILITY_KEY) {
+    return json({ error: 'not_configured', message: 'STABILITY_API_KEY not set' }, 503)
+  }
+  if (provider === 'replicate' && !REPLICATE_TOKEN) {
+    return json({ error: 'not_configured', message: 'REPLICATE_API_TOKEN not set' }, 503)
+  }
+
   const sbAdmin = createClient(SUPABASE_URL, SERVICE_KEY, {
     auth: { persistSession: false, autoRefreshToken: false }
   })
 
-  // -------- load the character --------
   const { data: character, error: charErr } = await sbAdmin
     .from('ct_ip_characters')
     .select('id, name, base_prompt, base_image_url')
@@ -96,139 +253,34 @@ export default async (req) => {
     return json({ error: 'no_base_image', message: 'This character has no base image yet.' }, 400)
   }
 
-  // Compose the prompt the model sees. Redux ignores prompt, but PuLID-style
-  // models use it for the scene; we send it either way.
   const prompt = [character.base_prompt, scene].filter(Boolean).join(', ')
 
-  // -------- kick off the Replicate prediction --------
-  const [owner, modelName] = MODEL.split('/')
-  if (!owner || !modelName) return json({ error: 'bad_model', message: `Invalid REPLICATE_MODEL: ${MODEL}` }, 500)
-
-  const predResp = await fetch(`${REPLICATE_API}/models/${owner}/${modelName}/predictions`, {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${REPLICATE_TOKEN}`,
-      'Content-Type': 'application/json',
-      // Prefer: wait=8 makes Replicate hold the connection up to 8 s before
-      // responding — covers most flux-redux/schnell generations in one round-trip.
-      Prefer: 'wait=8'
-    },
-    body: JSON.stringify({
-      input: {
-        // We pass the reference image under every common field name; each
-        // model reads the one it knows about and ignores the rest.
-        //   redux_image       → BFL flux-redux-*
-        //   image             → generic img2img / many community models
-        //   main_face_image   → lucataco/flux-pulid
-        //   face_image        → fofr/flux-pulid and related PuLID forks
-        redux_image: character.base_image_url,
-        image: character.base_image_url,
-        main_face_image: character.base_image_url,
-        face_image: character.base_image_url,
-        prompt,
-        num_outputs: n,
-        output_format: 'png'
-      }
-    })
-  })
-
-  if (!predResp.ok) {
-    const errText = await predResp.text().catch(() => '')
-    return json(
-      { error: 'replicate_error', status: predResp.status, message: errText.slice(0, 500) },
-      502
-    )
-  }
-
-  let prediction = await predResp.json()
-
-  // Short additional poll loop in case Prefer: wait wasn't enough.
-  const start = Date.now()
-  while (['starting', 'processing'].includes(prediction.status)) {
-    if (Date.now() - start > 6000) {
-      // Don't hold Netlify too long — surface progress and let the client retry.
+  let result
+  try {
+    result = provider === 'stability'
+      ? await generateWithStability(character, prompt, n)
+      : await generateWithReplicate(character, prompt, n)
+  } catch (err) {
+    if (err?.code === 'still_processing') {
       return json(
         {
           error: 'still_processing',
-          prediction_id: prediction.id,
-          poll_url: prediction.urls?.get,
-          message: 'Generation is still running on Replicate. Try the prompt again in a few seconds, or pick a faster model.'
+          prediction_id: err.prediction_id,
+          message: 'Generation still running on Replicate. Try again in a few seconds or switch to a faster model.'
         },
         202
       )
     }
-    await new Promise((r) => setTimeout(r, 1500))
-    const p = await fetch(prediction.urls.get, {
-      headers: { Authorization: `Bearer ${REPLICATE_TOKEN}` }
-    })
-    if (!p.ok) return json({ error: 'poll_failed' }, 502)
-    prediction = await p.json()
-  }
-
-  if (prediction.status !== 'succeeded') {
     return json(
-      { error: 'generation_failed', message: prediction.error || prediction.status },
+      { error: 'generation_failed', message: err?.message || String(err), provider },
       502
     )
   }
 
-  // Normalize output to an array of URLs.
-  const outputUrls = Array.isArray(prediction.output)
-    ? prediction.output
-    : prediction.output ? [prediction.output] : []
-  if (outputUrls.length === 0) return json({ error: 'no_output' }, 502)
-
-  // -------- download each output, upload to Storage, record DB row --------
-  const charSlug = slugify(character.name)
-  const sceneSlug = slugify(scene || 'variant', 24)
-  const ts = Date.now()
-  const variants = []
-
-  for (let i = 0; i < outputUrls.length; i++) {
-    const url = outputUrls[i]
-    if (!url) continue
-    try {
-      const imgResp = await fetch(url)
-      if (!imgResp.ok) continue
-      const buf = Buffer.from(await imgResp.arrayBuffer())
-      const ext = (url.split('?')[0].split('.').pop() || 'png').toLowerCase()
-      const path = `variants/${charSlug}-${sceneSlug}-${ts}-${i}.${ext}`
-      const contentType =
-        ext === 'jpg' || ext === 'jpeg' ? 'image/jpeg'
-        : ext === 'webp' ? 'image/webp'
-        : 'image/png'
-
-      const { error: upErr } = await sbAdmin.storage
-        .from('ip-characters')
-        .upload(path, buf, { contentType, upsert: false })
-      if (upErr) continue
-
-      const publicUrl = sbAdmin.storage.from('ip-characters').getPublicUrl(path).data.publicUrl
-
-      const { data: variant, error: insErr } = await sbAdmin
-        .from('ct_ip_variants')
-        .insert({
-          character_id: character.id,
-          scene: scene || null,
-          prompt,
-          image_url: publicUrl,
-          metadata: {
-            model: MODEL,
-            prediction_id: prediction.id,
-            replicate_url: url
-          }
-        })
-        .select()
-        .single()
-
-      if (!insErr && variant) variants.push(variant)
-    } catch {
-      // swallow per-image errors; keep going so user still gets the others
-    }
-  }
-
+  const variants = await persistVariants(sbAdmin, character, scene, prompt, result.buffers, result.meta)
   if (variants.length === 0) return json({ error: 'all_uploads_failed' }, 502)
-  return json({ variants, model: MODEL })
+
+  return json({ variants, provider, model: result.meta.model })
 }
 
 export const config = { path: '/api/generate-variant' }
